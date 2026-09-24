@@ -1,0 +1,5 @@
+{
+  "homeassistant": "2026.2.0",
+  "name": "Docker Swarm Monitor",
+  "render_readme": true
+}

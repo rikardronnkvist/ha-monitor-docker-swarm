@@ -1,0 +1,12 @@
+{
+  "domain": "docker_swarm_monitor",
+  "name": "Docker Swarm Monitor",
+  "codeowners": ["@rikardronnkvist"],
+  "config_flow": true,
+  "documentation": "https://github.com/rikardronnkvist/ha-monitor-docker-swarm",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/rikardronnkvist/ha-monitor-docker-swarm/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

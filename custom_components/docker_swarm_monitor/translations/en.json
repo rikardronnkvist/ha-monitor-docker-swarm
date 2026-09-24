@@ -1,0 +1,67 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This Docker Swarm endpoint is already configured",
+      "reconfigure_successful": "Docker Swarm Monitor was reconfigured successfully"
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the Docker Socket Proxy",
+      "forbidden": "The proxy denied a required endpoint. Enable NODES, SERVICES, TASKS, VERSION, and PING",
+      "invalid_response": "The proxy returned an invalid Docker API response",
+      "invalid_tls": "TLS certificate verification failed",
+      "invalid_url": "Enter a valid HTTP or HTTPS URL without credentials, query parameters, or fragments",
+      "not_manager": "The endpoint is not connected to a Docker Swarm manager",
+      "unsupported_api_version": "The Docker API version is not supported"
+    },
+    "step": {
+      "reconfigure": {
+        "data": {
+          "url": "Proxy URL",
+          "verify_ssl": "Verify TLS certificate"
+        },
+        "description": "Update the load balancer or Docker Socket Proxy endpoint.",
+        "title": "Reconfigure Docker Swarm Monitor"
+      },
+      "user": {
+        "data": {
+          "url": "Proxy URL",
+          "verify_ssl": "Verify TLS certificate"
+        },
+        "description": "Connect to the load balancer in front of the Docker Socket Proxy services.",
+        "title": "Docker Swarm Monitor"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "scan_interval": "Seconds between updates (minimum 10)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "swarm_health": {
+        "name": "Health"
+      }
+    },
+    "sensor": {
+      "managers_reachable": {"name": "Managers reachable"},
+      "managers_total": {"name": "Managers total"},
+      "nodes_non_ready": {"name": "Nodes not ready"},
+      "nodes_ready": {"name": "Nodes ready"},
+      "nodes_total": {"name": "Nodes total"},
+      "services_degraded": {"name": "Services degraded"},
+      "services_healthy": {"name": "Services healthy"},
+      "services_total": {"name": "Services total"},
+      "tasks_failed": {"name": "Tasks failed"},
+      "tasks_running": {"name": "Tasks running"},
+      "tasks_transitional": {"name": "Tasks transitional"}
+    }
+  }
+}
