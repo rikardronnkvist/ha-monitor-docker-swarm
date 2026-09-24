@@ -12,6 +12,21 @@ FAILED_TASK_STATES = frozenset({"failed", "rejected", "orphaned", "remove"})
 
 
 @dataclass(frozen=True, slots=True)
+class NodeInfo:
+    """Per-node state and current task counts."""
+
+    id: str
+    hostname: str
+    role: str
+    node_state: str
+    availability: str
+    engine_version: str | None
+    tasks_running: int
+    tasks_transitional: int
+    tasks_failed: int
+
+
+@dataclass(frozen=True, slots=True)
 class SwarmSummary:
     """Aggregate state exposed to Home Assistant."""
 
@@ -29,6 +44,7 @@ class SwarmSummary:
     tasks_running: int
     tasks_transitional: int
     tasks_failed: int
+    nodes: tuple[NodeInfo, ...]
 
     @property
     def healthy(self) -> bool:
@@ -58,18 +74,31 @@ def build_summary(
     leaders = sum(_nested(node, "ManagerStatus", "Leader") is True for node in managers)
 
     current_tasks = [task for task in tasks if task.get("DesiredState") == "running"]
-    task_states = Counter(_nested(task, "Status", "State") for task in current_tasks)
     tasks_by_service: dict[str, list[Mapping[str, Any]]] = {}
+    tasks_by_node: dict[str, list[Mapping[str, Any]]] = {}
     for task in current_tasks:
         service_id = task.get("ServiceID")
         if isinstance(service_id, str):
             tasks_by_service.setdefault(service_id, []).append(task)
+        node_id = task.get("NodeID")
+        if isinstance(node_id, str):
+            tasks_by_node.setdefault(node_id, []).append(task)
 
     healthy_services = sum(
         _service_is_healthy(service, tasks_by_service.get(str(service.get("ID")), []))
         for service in services
     )
 
+    node_infos: list[NodeInfo] = []
+    for node in nodes:
+        node_id = node.get("ID")
+        if not isinstance(node_id, str):
+            continue
+        node_infos.append(
+            _build_node_info(node, node_id, tasks_by_node.get(node_id, []))
+        )
+
+    tasks_running, tasks_transitional, tasks_failed = _count_task_states(current_tasks)
     managers_total = len(managers)
     return SwarmSummary(
         api_version=api_version,
@@ -83,11 +112,37 @@ def build_summary(
         services_total=len(services),
         services_healthy=healthy_services,
         services_degraded=len(services) - healthy_services,
-        tasks_running=task_states["running"],
-        tasks_transitional=sum(
-            task_states[state] for state in TRANSITIONAL_TASK_STATES
-        ),
-        tasks_failed=sum(task_states[state] for state in FAILED_TASK_STATES),
+        tasks_running=tasks_running,
+        tasks_transitional=tasks_transitional,
+        tasks_failed=tasks_failed,
+        nodes=tuple(node_infos),
+    )
+
+
+def _count_task_states(tasks: Sequence[Mapping[str, Any]]) -> tuple[int, int, int]:
+    """Return (running, transitional, failed) counts for a set of current tasks."""
+    states = Counter(_nested(task, "Status", "State") for task in tasks)
+    running = states["running"]
+    transitional = sum(states[state] for state in TRANSITIONAL_TASK_STATES)
+    failed = sum(states[state] for state in FAILED_TASK_STATES)
+    return running, transitional, failed
+
+
+def _build_node_info(
+    node: Mapping[str, Any], node_id: str, tasks: Sequence[Mapping[str, Any]]
+) -> NodeInfo:
+    """Build a per-node summary from a raw /nodes entry and its current tasks."""
+    running, transitional, failed = _count_task_states(tasks)
+    return NodeInfo(
+        id=node_id,
+        hostname=_nested(node, "Description", "Hostname") or node_id,
+        role=_nested(node, "Spec", "Role") or "unknown",
+        node_state=_nested(node, "Status", "State") or "unknown",
+        availability=_nested(node, "Spec", "Availability") or "unknown",
+        engine_version=_nested(node, "Description", "Engine", "EngineVersion"),
+        tasks_running=running,
+        tasks_transitional=transitional,
+        tasks_failed=failed,
     )
 
 

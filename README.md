@@ -8,6 +8,7 @@ address in front of Docker Socket Proxy instances running on every manager.
 
 - Manager quorum and leader monitoring
 - Node, service, and current task aggregate counts
+- Per-node devices with a running-task count for each node
 - Configurable local polling through the Home Assistant UI
 - HTTP and HTTPS endpoint support
 - No Docker write operations
@@ -109,6 +110,17 @@ Historical tasks whose desired state is `shutdown` are ignored. Replicated
 services must meet their desired replica count without a failed current task.
 All observable tasks for a global service must be running. Docker placement
 constraints are not reproduced, so a global service with no task is degraded.
+
+Each Swarm node also gets its own Home Assistant device, linked to the Swarm
+device, named after its hostname and reporting the node's engine version. It
+has a **Running tasks** sensor whose state is the node's current running task
+count, with `transitional`, `failed`, `node_state`, `availability`, and `role`
+as attributes. The sum of running tasks across all node sensors matches the
+aggregate "Tasks running" count. A node sensor is unavailable when the node
+isn't `ready` or polling fails. New nodes are picked up automatically on the
+next poll; a node removed from the Swarm keeps its device as unavailable until
+it is deleted manually from the UI, which is only possible once the node is no
+longer part of the Swarm.
 
 ## Troubleshooting
 
