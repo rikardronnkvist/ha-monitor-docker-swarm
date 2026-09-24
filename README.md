@@ -14,6 +14,8 @@ address in front of Docker Socket Proxy instances running on every manager.
 
 ## Installation
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rikardronnkvist&repository=ha-monitor-docker-swarm&category=integration)
+
 In HACS, add this repository as a custom integration repository and install
 **Docker Swarm Monitor**. For manual installation, copy
 `custom_components/docker_swarm_monitor` into the Home Assistant
