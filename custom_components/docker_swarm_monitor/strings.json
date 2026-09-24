@@ -53,6 +53,7 @@
     "sensor": {
       "managers_reachable": {"name": "Managers reachable"},
       "managers_total": {"name": "Managers total"},
+      "node_tasks_running": {"name": "Running tasks"},
       "nodes_non_ready": {"name": "Nodes not ready"},
       "nodes_ready": {"name": "Nodes ready"},
       "nodes_total": {"name": "Nodes total"},

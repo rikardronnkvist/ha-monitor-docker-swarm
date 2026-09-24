@@ -3,9 +3,10 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceEntry
 
 from .api import DockerSwarmClient
-from .const import CONF_URL, CONF_VERIFY_SSL, PLATFORMS
+from .const import CONF_URL, CONF_VERIFY_SSL, DOMAIN, PLATFORMS
 from .coordinator import DockerSwarmCoordinator
 
 type DockerSwarmConfigEntry = ConfigEntry[DockerSwarmCoordinator]
@@ -39,3 +40,15 @@ async def _async_reload_entry(
 ) -> None:
     """Reload an entry after its configuration changes."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: DockerSwarmConfigEntry, device_entry: DeviceEntry
+) -> bool:
+    """Allow deleting a node device once its node has left the Swarm."""
+    node_ids = {node.id for node in entry.runtime_data.data.nodes}
+    prefix = f"{entry.entry_id}_node_"
+    for domain, identifier in device_entry.identifiers:
+        if domain == DOMAIN and identifier.startswith(prefix):
+            return identifier.removeprefix(prefix) not in node_ids
+    return False
